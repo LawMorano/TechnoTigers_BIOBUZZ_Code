@@ -66,14 +66,14 @@ public class MainTele extends LinearOpMode {
 
         // Reverse one intake here if the two motors need opposite directions.
 
-        intake1.setDirection(DcMotorSimple.Direction.FORWARD);
-        intake2.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake1.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         setDriveZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        double intakePower = 0.6;
+        double intakePower = 0.8;
 
         // Retrieve the IMU from the hardware map
         IMU imu = hardwareMap.get(IMU.class, "imu");
@@ -108,15 +108,14 @@ public class MainTele extends LinearOpMode {
             frontRight.setPower(frontRightPower);
             backRight.setPower(backRightPower);
 
-            if (gamepad1.a) {
-                intakePower = INTAKE_POWER;
+            if (gamepad1.aWasPressed()) {
+                intake1.setPower(INTAKE_POWER);
+                intake2.setPower(INTAKE_POWER);
             }
-            if (gamepad1.b) {
-                intakePower = 0.0;
+            if (gamepad1.bWasPressed()) {
+                intake1.setPower(0);
+                intake2.setPower(0);
             }
-
-            intake1.setPower(intakePower);
-            intake2.setPower(intakePower);
 
             telemetry.addData("Front left", "%.2f", frontLeftPower);
             telemetry.addData("Front right", "%.2f", frontRightPower);
