@@ -1,12 +1,16 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-// import com.qualcomm.robotcore.hardware.DcMotorEx;
-// import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.IMU;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
 /**
  * Robot-centric mecanum drive controlled by gamepad 1.
@@ -22,11 +26,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
  * frontLeft, frontRight, backLeft, backRight, intake1, and intake2.
  */
 @TeleOp(name = "MainTele", group = "Drive")
-@Disabled
 public class MainTele extends LinearOpMode {
 
-    private static final double INTAKE_POWER = 1.0;
-
+    private static final double INTAKE_POWER = 0.8;
     private DcMotor frontLeft;
     private DcMotor frontRight;
     private DcMotor backLeft;
@@ -43,10 +45,11 @@ public class MainTele extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
+        frontLeft = hardwareMap.get(DcMotor.class, "FL");
+        frontRight = hardwareMap.get(DcMotor.class, "FR");
+        backLeft = hardwareMap.get(DcMotor.class, "BL");
+        backRight = hardwareMap.get(DcMotor.class, "BR");
+
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class, "intake2");
 
@@ -57,11 +60,12 @@ public class MainTele extends LinearOpMode {
         // turretRight = hardwareMap.get(Servo.class, "RRotation");
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Reverse one intake here if the two motors need opposite directions.
+
         intake1.setDirection(DcMotorSimple.Direction.FORWARD);
         intake2.setDirection(DcMotorSimple.Direction.FORWARD);
 
@@ -71,27 +75,33 @@ public class MainTele extends LinearOpMode {
 
         double intakePower = 0.6;
 
+        // Retrieve the IMU from the hardware map
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        // Adjust the orientation parameters to match your robot
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP));
+        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+        imu.initialize(parameters);
+
         telemetry.addLine("MainTele ready");
         telemetry.addLine("A: intakes on | B: intakes off");
         telemetry.update();
         waitForStart();
 
         while (opModeIsActive()) {
-            // FTC gamepad Y is negative when the stick is pushed forward.
-            double forward = -gamepad1.left_stick_y;
-            double strafe = gamepad1.left_stick_x;
-            double turn = gamepad1.right_stick_x;
+            double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+            double rx = gamepad1.right_stick_x;
 
-            // Normalize the wheel powers so none exceeds the valid [-1, 1] range.
-            double denominator = Math.max(
-                    Math.abs(forward) + Math.abs(strafe) + Math.abs(turn),
-                    1.0
-            );
-
-            double frontLeftPower = (forward + strafe + turn) / denominator;
-            double backLeftPower = (forward - strafe + turn) / denominator;
-            double frontRightPower = (forward - strafe - turn) / denominator;
-            double backRightPower = (forward + strafe - turn) / denominator;
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio,
+            // but only if at least one is out of the range [-1, 1]
+            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+            double frontLeftPower = (y + x + rx) / denominator;
+            double backLeftPower = (y - x + rx) / denominator;
+            double frontRightPower = (y - x - rx) / denominator;
+            double backRightPower = (y + x - rx) / denominator;
 
             frontLeft.setPower(frontLeftPower);
             backLeft.setPower(backLeftPower);
@@ -112,7 +122,7 @@ public class MainTele extends LinearOpMode {
             telemetry.addData("Front right", "%.2f", frontRightPower);
             telemetry.addData("Back left", "%.2f", backLeftPower);
             telemetry.addData("Back right", "%.2f", backRightPower);
-            telemetry.addData("Intakes", intakePower == 0.0 ? "OFF" : "ON");
+            //telemetry.addData("Intakes", intakePower == 0.0 ? "OFF" : "ON");
             telemetry.update();
         }
 
