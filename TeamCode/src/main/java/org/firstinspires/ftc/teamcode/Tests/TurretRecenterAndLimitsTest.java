@@ -1,16 +1,14 @@
 package org.firstinspires.ftc.teamcode.Tests;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "Turret Recenter and Limits Test", group = "Test")
-@Disabled
 public class TurretRecenterAndLimitsTest extends OpMode {
-    private static final String LEFT_NAME = "LRotation";
-    private static final String RIGHT_NAME = "RRotation";
+    private static final String LEFT_NAME = "LEFT-TurretServo";
+    private static final String RIGHT_NAME = "RIGHT-TurretServo";
 
     /*
      * ======================== CHANGE THESE DURING SETUP ========================
@@ -45,8 +43,8 @@ public class TurretRecenterAndLimitsTest extends OpMode {
     private static final double DRIVE_PULLEY_TEETH = 25.0;
     private static final double TURRET_PULLEY_TEETH = 59.0;
 
-    // The Axon servos must be programmed for a 360-degree position range.
-    private static final double SERVO_RANGE_DEGREES = 360.0;
+    // Old Axon MINI/MINI+ setting 255 corresponds to approximately 355 degrees.
+    private static final double SERVO_RANGE_DEGREES = 355.0;
 
     private static final double TURRET_DEGREES_PER_SERVO_DEGREE =
             (SERVO_GEAR_TEETH / SHAFT_GEAR_TEETH)
@@ -86,7 +84,7 @@ public class TurretRecenterAndLimitsTest extends OpMode {
         right = hardwareMap.get(Servo.class, RIGHT_NAME);
 
         // Configure both as Full Range Servos (500-2500 us) in the FTC Robot
-        // Configuration so that position 0.0-1.0 represents 360 degrees.
+        // Configuration so that position 0.0-1.0 represents about 355 degrees.
         applyTurretAngle(0.0);
 
         telemetry.addLine("Turret test READY");
