@@ -12,7 +12,7 @@ public class DualMotorShooter {
     public static final String MOTOR_B_NAME = "ShooterMotor2";
     // Verify these directions at low power before installing/running the belts at full speed.
     public static final DcMotorSimple.Direction MOTOR_A_DIRECTION = DcMotorSimple.Direction.FORWARD;
-    public static final DcMotorSimple.Direction MOTOR_B_DIRECTION = DcMotorSimple.Direction.FORWARD;
+    public static final DcMotorSimple.Direction MOTOR_B_DIRECTION = DcMotorSimple.Direction.REVERSE;
 
     private static final double NOMINAL_BATTERY_VOLTS = 12.0;
     private static final double ACCELERATION_FILTER_SECONDS = 0.05;

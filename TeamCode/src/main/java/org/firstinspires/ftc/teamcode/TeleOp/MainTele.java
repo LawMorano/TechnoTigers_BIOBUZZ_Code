@@ -21,17 +21,20 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * - Right stick left/right: turn
  * - A: turn both intake motors on
  * - B: turn both intake motors off
+ * - Y: turn both shooter motors on
+ * - X: turn both shooter motors off
  * - D-pad left: switch between the close and far red goals
  * - Start: set the robot center to the (8, 8) recenter point
  *
  * Pedro Pathing controls FL, FR, BL, BR, and pinpoint through Constants.
- * Other hardware names: intake1, intake2, LEFT-TurretServo,
- * and RIGHT-TurretServo.
+ * Other hardware names: intake1, intake2, TopShooter, BottomShooter,
+ * LEFT-TurretServo, and RIGHT-TurretServo.
  */
 @TeleOp(name = "MainTele", group = "Drive")
 public class MainTele extends LinearOpMode {
 
     private static final double INTAKE_POWER = 0.8;
+    private static final double SHOOTER_POWER = 0.9;
 
     private static final double CLOSE_RED_GOAL_X = 58.0;
     private static final double CLOSE_RED_GOAL_Y = 52.0;
@@ -70,6 +73,9 @@ public class MainTele extends LinearOpMode {
     private Servo turretLeft;
     private Servo turretRight;
 
+    private DcMotor shooterTop;
+    private DcMotor shooterBottom;
+
     private boolean useFarRedGoal;
     private boolean previousDpadLeft;
 
@@ -84,6 +90,8 @@ public class MainTele extends LinearOpMode {
 
         intake1 = hardwareMap.get(DcMotor.class, "intake1");
         intake2 = hardwareMap.get(DcMotor.class, "intake2");
+        shooterTop = hardwareMap.get(DcMotor.class, "TopShooter");
+        shooterBottom = hardwareMap.get(DcMotor.class, "BottomShooter");
         turretLeft = hardwareMap.get(Servo.class, LEFT_TURRET_NAME);
         turretRight = hardwareMap.get(Servo.class, RIGHT_TURRET_NAME);
 
@@ -92,13 +100,20 @@ public class MainTele extends LinearOpMode {
         // Reverse one intake here if the two motors need opposite directions.
         intake1.setDirection(DcMotorSimple.Direction.REVERSE);
         intake2.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooterTop.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooterBottom.setDirection(DcMotorSimple.Direction.REVERSE);
 
         intake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooterTop.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterBottom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterTop.setPower(0.0);
+        shooterBottom.setPower(0.0);
 
         telemetry.addLine("MainTele ready");
         telemetry.addLine("Pedro robot-centric drive enabled");
         telemetry.addLine("A: intakes on | B: intakes off");
+        telemetry.addLine("Y: shooters on | X: shooters off");
         telemetry.addLine("D-pad left: switch red goal");
         telemetry.addLine("Start: recenter robot at (8, 8)");
         telemetry.update();
@@ -153,6 +168,14 @@ public class MainTele extends LinearOpMode {
                 intake1.setPower(0);
                 intake2.setPower(0);
             }
+            if (gamepad1.yWasPressed()) {
+                shooterTop.setPower(SHOOTER_POWER);
+                shooterBottom.setPower(SHOOTER_POWER);
+            }
+            if (gamepad1.xWasPressed()) {
+                shooterTop.setPower(0);
+                shooterBottom.setPower(0);
+            }
 
             // Keep these values numeric so Dashboard can plot and export them.
             telemetry.addData("robotXIn", robotPose.x());
@@ -176,6 +199,8 @@ public class MainTele extends LinearOpMode {
         follower.stop();
         intake1.setPower(0.0);
         intake2.setPower(0.0);
+        shooterTop.setPower(0.0);
+        shooterBottom.setPower(0.0);
     }
 
     private void applyTurretAngle(double angleDegrees) {
