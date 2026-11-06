@@ -51,12 +51,18 @@ public class DualMotorShooter {
         ticksPerMotorRevolutionA = motorA.getMotorType().getTicksPerRev();
         ticksPerMotorRevolutionB = motorB.getMotorType().getTicksPerRev();
         if (ticksPerMotorRevolutionA <= 0 || ticksPerMotorRevolutionB <= 0) {
-            throw new IllegalStateException("Both shooter motor types must define encoder ticks/revolution");
+            throw new IllegalStateException(
+                    "Both shooter motor types must define encoder ticks/revolution");
         }
     }
 
-    public void setCalibration(ShooterCalibration calibration) { this.calibration = calibration; }
-    public void setTargetRpm(double targetRpm) { this.targetRpm = Math.max(0.0, targetRpm); }
+    public void setCalibration(ShooterCalibration calibration) {
+        this.calibration = calibration;
+    }
+
+    public void setTargetRpm(double targetRpm) {
+        this.targetRpm = Math.max(0.0, targetRpm);
+    }
 
     public void update() {
         double now = System.nanoTime() * 1e-9;
@@ -64,8 +70,10 @@ public class DualMotorShooter {
         previousTimeSeconds = now;
         dt = clamp(dt, 0.001, 0.100);
 
-        motorARpm = ticksPerSecondToFlywheelRpm(motorA.getVelocity(), ticksPerMotorRevolutionA);
-        motorBRpm = ticksPerSecondToFlywheelRpm(motorB.getVelocity(), ticksPerMotorRevolutionB);
+        motorARpm = ticksPerSecondToFlywheelRpm(
+                motorA.getVelocity(), ticksPerMotorRevolutionA);
+        motorBRpm = ticksPerSecondToFlywheelRpm(
+                motorB.getVelocity(), ticksPerMotorRevolutionB);
         measuredRpm = (motorARpm + motorBRpm) / 2.0;
         double rawAcceleration = (measuredRpm - previousMeasuredRpm) / dt;
         previousMeasuredRpm = measuredRpm;
@@ -75,7 +83,8 @@ public class DualMotorShooter {
 
         double oldProfiledTarget = profiledTargetRpm;
         double maximumChange = Math.max(0.0, calibration.maxAccelerationRpmPerSecond) * dt;
-        profiledTargetRpm += clamp(targetRpm - profiledTargetRpm, -maximumChange, maximumChange);
+        profiledTargetRpm += clamp(
+                targetRpm - profiledTargetRpm, -maximumChange, maximumChange);
         double targetAcceleration = (profiledTargetRpm - oldProfiledTarget) / dt;
         errorRpm = profiledTargetRpm - measuredRpm;
 
@@ -86,11 +95,14 @@ public class DualMotorShooter {
         } else {
             if (Math.abs(errorRpm) <= calibration.integralZoneRpm) {
                 integralVoltage += calibration.kI * errorRpm * dt;
-                integralVoltage = clamp(integralVoltage,
-                        -calibration.integralLimitVolts, calibration.integralLimitVolts);
+                integralVoltage = clamp(
+                        integralVoltage,
+                        -calibration.integralLimitVolts,
+                        calibration.integralLimitVolts);
             } else {
                 integralVoltage = 0.0;
             }
+
             double feedforwardVolts = calibration.kS * Math.signum(profiledTargetRpm)
                     + calibration.kV * profiledTargetRpm
                     + calibration.kA * targetAcceleration;
@@ -131,32 +143,69 @@ public class DualMotorShooter {
         motorB.setPower(0.0);
     }
 
-    public boolean isReady() { return readyDurationSeconds >= calibration.readyTimeSeconds; }
+    public boolean isReady() {
+        return readyDurationSeconds >= calibration.readyTimeSeconds;
+    }
+
     public boolean encodersAgree() {
-        double reference = Math.max(250.0, (Math.abs(motorARpm) + Math.abs(motorBRpm)) / 2.0);
+        double reference = Math.max(
+                250.0, (Math.abs(motorARpm) + Math.abs(motorBRpm)) / 2.0);
         return Math.abs(motorARpm - motorBRpm) / reference <= 0.10;
     }
-    public double getTargetRpm() { return targetRpm; }
-    public double getProfiledTargetRpm() { return profiledTargetRpm; }
-    public double getMeasuredRpm() { return measuredRpm; }
-    public double getMotorARpm() { return motorARpm; }
-    public double getMotorBRpm() { return motorBRpm; }
-    public double getErrorRpm() { return errorRpm; }
-    public double getAccelerationRpmPerSecond() { return filteredAccelerationRpmPerSecond; }
-    public double getRequestedVolts() { return requestedVolts; }
-    public double getAppliedPower() { return appliedPower; }
+
+    public double getTargetRpm() {
+        return targetRpm;
+    }
+
+    public double getProfiledTargetRpm() {
+        return profiledTargetRpm;
+    }
+
+    public double getMeasuredRpm() {
+        return measuredRpm;
+    }
+
+    public double getMotorARpm() {
+        return motorARpm;
+    }
+
+    public double getMotorBRpm() {
+        return motorBRpm;
+    }
+
+    public double getErrorRpm() {
+        return errorRpm;
+    }
+
+    public double getAccelerationRpmPerSecond() {
+        return filteredAccelerationRpmPerSecond;
+    }
+
+    public double getRequestedVolts() {
+        return requestedVolts;
+    }
+
+    public double getAppliedPower() {
+        return appliedPower;
+    }
+
     public double getBatteryVoltage() {
         double result = Double.POSITIVE_INFINITY;
         for (VoltageSensor sensor : hardwareMap.voltageSensor) {
             double voltage = sensor.getVoltage();
-            if (voltage > 0.0) result = Math.min(result, voltage);
+            if (voltage > 0.0) {
+                result = Math.min(result, voltage);
+            }
         }
         return Double.isFinite(result) ? result : NOMINAL_BATTERY_VOLTS;
     }
 
-    private double ticksPerSecondToFlywheelRpm(double ticksPerSecond, double ticksPerRevolution) {
-        return ticksPerSecond * 60.0 / ticksPerRevolution * calibration.motorToFlywheelRatio;
+    private double ticksPerSecondToFlywheelRpm(
+            double ticksPerSecond, double ticksPerRevolution) {
+        return ticksPerSecond * 60.0 / ticksPerRevolution
+                * calibration.motorToFlywheelRatio;
     }
+
     private static double clamp(double value, double minimum, double maximum) {
         return Math.max(minimum, Math.min(maximum, value));
     }
