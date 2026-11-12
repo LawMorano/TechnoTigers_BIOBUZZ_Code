@@ -6,6 +6,8 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+
+import org.firstinspires.ftc.teamcode.Shooter.DualMotorShooter;
 import org.firstinspires.ftc.teamcode.Shooter.ShooterCalibration;
 
 /** Live voltage-based PID + feedforward tuner for the mechanically coupled shooter. */
